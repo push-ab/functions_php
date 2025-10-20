@@ -1,0 +1,106 @@
+<?php
+declare(strict_types=1);
+
+const OPERATION_EXIT = 0;
+const OPERATION_ADD = 1;
+const OPERATION_DELETE = 2;
+const OPERATION_PRINT = 3;
+
+$operations = [
+    OPERATION_EXIT => OPERATION_EXIT . '. Завершить программу.',
+    OPERATION_ADD => OPERATION_ADD . '. Добавить товар в список покупок.',
+    OPERATION_DELETE => OPERATION_DELETE . '. Удалить товар из списка покупок.',
+    OPERATION_PRINT => OPERATION_PRINT . '. Отобразить список покупок.',
+];
+
+$items = [];
+
+
+function displayShoppingListAndGetOperation(array $items, array $operations): int
+{
+    system('clear');
+    // system('cls'); // windows
+
+    if (count($items)) {
+        echo 'Ваш список покупок: ' . PHP_EOL;
+        echo implode("\n", $items) . "\n";
+    } else {
+        echo 'Ваш список покупок пуст.' . PHP_EOL;
+    }
+
+    echo 'Выберите операцию для выполнения: ' . PHP_EOL;
+    
+    $availableOperations = $operations;
+    if (empty($items)) {
+        unset($availableOperations[OPERATION_DELETE]);
+    }
+    
+    echo implode(PHP_EOL, $availableOperations) . PHP_EOL . '> ';
+    
+    $input = trim(fgets(STDIN));
+    return (int)$input;
+}
+
+function addItem(array &$items): void
+{
+    echo "Введите название товара для добавления в список: \n> ";
+    $itemName = trim(fgets(STDIN));
+    if (!empty($itemName)) {
+        $items[] = $itemName;
+        echo "Товар '{$itemName}' добавлен в список." . PHP_EOL;
+    }
+}
+
+function deleteItem(array &$items): void
+{
+    echo 'Текущий список покупок:' . PHP_EOL;
+    echo implode("\n", $items) . "\n";
+    echo 'Введите название товара для удаления из списка:' . PHP_EOL . '> ';
+    $itemName = trim(fgets(STDIN));
+
+    if (in_array($itemName, $items, true)) {
+        $initialCount = count($items);
+        $items = array_filter($items, fn($item) => $item !== $itemName);
+        $removedCount = $initialCount - count($items);
+        echo "Удалено {$removedCount} позиций товара '{$itemName}'." . PHP_EOL;
+    } else {
+        echo "Товар '{$itemName}' не найден в списке." . PHP_EOL;
+    }
+}
+
+function printItems(array $items): void
+{
+    if (empty($items)) {
+        echo 'Ваш список покупок пуст.' . PHP_EOL;
+    } else {
+        echo 'Ваш список покупок: ' . PHP_EOL;
+        echo implode(PHP_EOL, $items) . PHP_EOL;
+        echo 'Всего ' . count($items) . ' позиций.' . PHP_EOL;
+    }
+    echo 'Нажмите enter для продолжения';
+    fgets(STDIN);
+}
+
+do {
+    $operationNumber = displayShoppingListAndGetOperation($items, $operations);
+
+    echo 'Выбрана операция: '  . $operations[$operationNumber] . PHP_EOL;
+
+    switch ($operationNumber) {
+        case OPERATION_ADD:
+            addItem($items);
+            break;
+
+        case OPERATION_DELETE:
+            deleteItem($items);
+            break;
+
+        case OPERATION_PRINT:
+            printItems($items);
+            break;
+    }
+
+    echo "\n ----- \n";
+} while ($operationNumber > 0);
+
+echo 'Программа завершена' . PHP_EOL;
